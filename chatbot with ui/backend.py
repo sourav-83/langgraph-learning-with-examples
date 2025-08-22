@@ -31,3 +31,7 @@ graph.add_edge(START, 'chat_node')
 graph.add_edge('chat_node', END)
 
 chatbot = graph.compile(checkpointer=checkpointer)
+
+def get_chat_name(msg):
+
+    return llm.invoke(f'If the following is the first message of a conversation between a human and AI model and it is delivered by huma then give a meaningful chat name within 3 words. only tell the name.\n Message: {msg}').content

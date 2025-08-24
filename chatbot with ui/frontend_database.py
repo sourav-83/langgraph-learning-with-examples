@@ -1,5 +1,5 @@
 import streamlit as st
-from backend_database import chatbot, get_chat_name, load_all_threads_with_names, save_thread_name
+from backend_database import chatbot, get_chat_name, load_all_threads_with_names, save_thread_name, get_thread_name_from_history
 from langchain_core.messages import HumanMessage
 import uuid
 
@@ -17,7 +17,11 @@ def add_thread(thread_id, name="new chat"):
         st.session_state['chat_threads'][thread_id] = name or str(thread_id)
 
 def load_conversation(thread_id):
-    return chatbot.get_state(config={'configurable': {'thread_id': thread_id}}).values['messages']
+    try:
+
+     return chatbot.get_state(config={'configurable': {'thread_id': thread_id}}).values['messages']
+    except:
+        return []
     
 def initialize_chat_threads():
     
@@ -111,11 +115,10 @@ if user_input:
 
     
     if len(st.session_state['message_history']) == 2:
+        
             first_message = st.session_state['message_history'][0]['content']
             name = get_chat_name(first_message)
-    if name and name != "New Chat":
-        
-        save_thread_name(st.session_state['thread_id'], name)
-        
-        st.session_state['chat_threads'][st.session_state['thread_id']] = name
-        st.rerun()
+            if name and name != "New Chat":
+                if save_thread_name(st.session_state['thread_id'], name):
+                     st.session_state['chat_threads'][st.session_state['thread_id']] = name
+                     st.rerun()

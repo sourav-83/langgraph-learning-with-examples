@@ -15,6 +15,7 @@ class state(TypedDict):
 
     messages: Annotated[list[BaseMessage], add_messages]
 
+
 def chat_node(state: state):
 
     messages = state['messages']
@@ -56,15 +57,19 @@ def get_chat_name(msg):
     return llm.invoke(f'If the following is the first message of a conversation between a human and AI model and it is delivered by huma then give a meaningful chat name within 3 words. only tell the name.\n Message: {msg}').content
 
 def save_thread_name(thread_id, name):
-    
     try:
         cursor = connection.cursor()
-        cursor.execute('''
-            INSERT OR REPLACE INTO thread_names (thread_id, name)
-            VALUES (?, ?)
-        ''', (thread_id, name))
-        connection.commit()
-        return True
+        cursor.execute('SELECT name FROM thread_names WHERE thread_id = ?', (thread_id,))
+        existing = cursor.fetchone()
+        
+        if not existing:
+            cursor.execute('''
+                INSERT INTO thread_names (thread_id, name)
+                VALUES (?, ?)
+            ''', (thread_id, name))
+            connection.commit()
+            return True
+        return False
     except Exception as e:
         print(f"Error saving thread name: {e}")
         return False
@@ -86,21 +91,7 @@ def get_thread_name_from_history(thread_id):
     if saved_name:
         return saved_name
     
-    
-    try:
-        state = chatbot.get_state(config={'configurable': {'thread_id': thread_id}})
-        if state and state.values and 'messages' in state.values:
-            messages = state.values['messages']
-            
-            for msg in messages:
-                if isinstance(msg, HumanMessage):
-                    name = get_chat_name(msg.content)
-                    
-                    save_thread_name(thread_id, name)
-                    return name
-        return "New Chat"
-    except:
-        return "New Chat"
+    return "New Chat"
 
 def load_all_threads_with_names():
     

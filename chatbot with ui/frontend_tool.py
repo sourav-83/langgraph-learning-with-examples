@@ -77,14 +77,14 @@ for thread_id, name in list(st.session_state['chat_threads'].items())[::-1]:
 
 for message in st.session_state['message_history']:
     with st.chat_message(message['role']):
-        st.text(message['content'])
+        st.markdown(message['content'])
 
 user_input = st.chat_input('Type here')
 
 if user_input:
     st.session_state['message_history'].append({'role': 'user', 'content': user_input})
     with st.chat_message('user'):
-        st.text(user_input)
+        st.markdown(user_input)
 
     CONFIG = {'configurable': {'thread_id': st.session_state['thread_id']},
               "metadata": {
